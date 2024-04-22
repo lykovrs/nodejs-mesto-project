@@ -10,6 +10,7 @@
     "dev": "ts-node-dev --respawn --pretty --transpile-only src/app.ts",
     "build": "tsc "
   },
+  "node": "<=20.6.0",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/lykovrs/nodejs-mesto-project.git"
@@ -35,7 +36,6 @@
   },
   "dependencies": {
     "express": "^4.19.2",
-    "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.3.2"
   }
 }

@@ -25,14 +25,21 @@ export const createCard = (
   res: Response<unknown, AuthContext>,
   next: NextFunction,
 ) => {
+  const badReqMessage = 'Ошибка ввода параметров создания карточки';
   const { name, link } = req.body;
-  if (!name || !link) throw new BadRequest('Ошибка ввода параметров создания карточки');
+  if (!name || !link) throw new BadRequest(badReqMessage);
 
   if (!res.locals?.user._id) throw new UnauthorizedError('Для создания карточки вы должны быть авторизованы');
 
   return Card.create({ name, link, owner: res.locals.user._id })
     .then((card) => res.send({ _id: card._id }))
-    .catch(next);
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
+        next(new BadRequest(badReqMessage));
+      } else {
+        next(err);
+      }
+    });
 };
 
 /**
@@ -44,15 +51,21 @@ export const deleteCardById = (
   next: NextFunction,
 ) => {
   const { id } = req.params;
-
+  const badReqMessage = 'Нет карточки с таким id';
   if (!res.locals?.user._id) throw new UnauthorizedError('Для удаления карточки вы должны быть авторизованы');
 
   return Card.findByIdAndDelete(id).select(['-__v', '-updatedAt'])
     .then((card) => {
-      if (!card) throw new NotFoundError('Нет карточки с таким id');
-      res.send({ _id: card });
+      if (!card) throw new NotFoundError(badReqMessage);
+      res.send({ _id: card._id });
     })
-    .catch(next);
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        next(new BadRequest(badReqMessage));
+      } else {
+        next(err);
+      }
+    });
 };
 
 /**

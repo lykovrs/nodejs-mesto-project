@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from 'express';
 
 import User, { IUser } from '../models/user';
 import {
-  BadRequest, ForbiddenError, NotFoundError, UnauthorizedError,
+  BadRequest, NotFoundError, UnauthorizedError,
 } from '../errors';
 import { AuthContext } from '../types';
 
@@ -30,13 +30,20 @@ export const createUser = (
   next: NextFunction,
 ) => {
   const { name, about, avatar } = req.body;
-  if (!name || !about || !avatar) throw new ForbiddenError('Ошибка ввода параметров создания пользователя');
+  const badReqMessage = 'Ошибка ввода параметров создания пользователя';
+  if (!name || !about || !avatar) throw new BadRequest(badReqMessage);
 
   return User.create({ name, about, avatar })
     .then((user) => {
       res.send({ _id: user._id });
     })
-    .catch(next);
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
+        next(new BadRequest(badReqMessage));
+      } else {
+        next(err);
+      }
+    });
 };
 
 /**
@@ -47,16 +54,23 @@ export const getUserById = (
   res: Response,
   next: NextFunction,
 ) => {
+  const badReqMessage = 'Нет пользователя с таким id';
   const { id } = req.params;
 
   return User.findById(id).select(
     '-__v',
   )
     .then((user) => {
-      if (!user) throw new NotFoundError('Нет пользователя с таким id');
+      if (!user) throw new NotFoundError(badReqMessage);
       res.send({ data: user });
     })
-    .catch(next);
+    .catch((err) => {
+      if (err.name === 'ValidationError' || err.name === 'CastError') {
+        next(new BadRequest(badReqMessage));
+      } else {
+        next(err);
+      }
+    });
 };
 
 /**
@@ -67,15 +81,16 @@ export const updateMe = (
   res: Response<unknown, AuthContext>,
   next: NextFunction,
 ) => {
+  const badReqMessage = 'Ошибка ввода параметров изменения профиля';
   if (!res.locals?.user._id) throw new UnauthorizedError('Для обновления профиля вы должны быть авторизованы');
 
   const { name, about } = req.body;
-  if (!name || !about) throw new BadRequest('Ошибка ввода параметров изменения профиля');
+  if (!name || !about) throw new BadRequest(badReqMessage);
 
   return User.findByIdAndUpdate(
     res.locals?.user._id,
     { $set: { name, about } },
-    { new: true },
+    { new: true, runValidators: true },
   ).select(
     '-__v',
   )
@@ -83,7 +98,13 @@ export const updateMe = (
       if (!user) throw new NotFoundError('Нет пользователя с таким id');
       res.send({ data: user });
     })
-    .catch(next);
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
+        next(new BadRequest(badReqMessage));
+      } else {
+        next(err);
+      }
+    });
 };
 
 /**
@@ -94,17 +115,28 @@ export const updateMyAvatar = (
   res: Response<unknown, AuthContext>,
   next: NextFunction,
 ) => {
+  const badReqMessage = 'Ошибка ввода параметров аватара профиля';
   if (!res.locals?.user._id) throw new UnauthorizedError('Для обновления профиля вы должны быть авторизованы');
 
   const { avatar } = req.body;
-  if (!avatar) throw new BadRequest('Ошибка ввода параметров аватара профиля');
+  if (!avatar) throw new BadRequest(badReqMessage);
 
-  return User.findByIdAndUpdate(res.locals?.user._id, { $set: { avatar } }, { new: true }).select(
+  return User.findByIdAndUpdate(
+    res.locals?.user._id,
+    { $set: { avatar } },
+    { new: true, runValidators: true },
+  ).select(
     '-__v',
   )
     .then((user) => {
       if (!user) throw new NotFoundError('Нет пользователя с таким id');
       res.send({ data: user });
     })
-    .catch(next);
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
+        next(new BadRequest(badReqMessage));
+      } else {
+        next(err);
+      }
+    });
 };
