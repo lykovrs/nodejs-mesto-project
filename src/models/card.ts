@@ -35,6 +35,8 @@ const cardSchema = new Schema<ICard>({
     ],
     default: [],
   },
-}, { timestamps: true });
+}, {
+  timestamps: true,
+});
 
 export default model<ICard>('card', cardSchema);

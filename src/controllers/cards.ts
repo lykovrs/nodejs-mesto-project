@@ -1,4 +1,6 @@
-import { NextFunction, Request, Response } from 'express';
+import {
+  NextFunction, Request, Response,
+} from 'express';
 
 import Card, { ICard } from '../models/card';
 import { AuthContext } from '../types';
@@ -9,7 +11,9 @@ import {
 /**
  * Возвращает все карточки
  */
-export const getCards = (req: Request, res: Response, next: NextFunction) => Card.find({})
+export const getCards = (req: Request, res: Response, next: NextFunction) => Card.find({}).select(
+  ['-__v', '-updatedAt'],
+)
   .then((cards) => res.send({ data: cards }))
   .catch(next);
 
@@ -27,7 +31,7 @@ export const createCard = (
   if (!res.locals?.user._id) throw new UnauthorizedError('Для создания карточки вы должны быть авторизованы');
 
   return Card.create({ name, link, owner: res.locals.user._id })
-    .then((director) => res.send({ data: director }))
+    .then((card) => res.send({ _id: card._id }))
     .catch(next);
 };
 
@@ -43,10 +47,10 @@ export const deleteCardById = (
 
   if (!res.locals?.user._id) throw new UnauthorizedError('Для удаления карточки вы должны быть авторизованы');
 
-  return Card.findByIdAndDelete(id)
+  return Card.findByIdAndDelete(id).select(['-__v', '-updatedAt'])
     .then((card) => {
       if (!card) throw new NotFoundError('Нет карточки с таким id');
-      res.send({ data: card });
+      res.send({ _id: card });
     })
     .catch(next);
 };
@@ -71,7 +75,7 @@ export const likeCardById = (
     $addToSet: { likes: res.locals.user._id },
   };
 
-  return Card.findByIdAndUpdate(id, update, options)
+  return Card.findByIdAndUpdate(id, update, options).select(['-__v', '-updatedAt'])
     .then((card) => {
       if (!card) throw new NotFoundError('Нет карточки с таким id');
       res.send({ data: card });
@@ -99,7 +103,7 @@ export const dislikeCardById = (
     $pull: { likes: res.locals.user._id },
   };
 
-  return Card.findByIdAndUpdate(id, update, options)
+  return Card.findByIdAndUpdate(id, update, options).select(['-__v', '-updatedAt'])
     .then((card) => {
       if (!card) throw new NotFoundError('Нет карточки с таким id');
       res.send({ data: card });

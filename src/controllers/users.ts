@@ -13,7 +13,9 @@ export const getUsers = (
   req: Request,
   res: Response,
   next: NextFunction,
-) => User.find({})
+) => User.find({}).select(
+  '-__v',
+)
   .then((users) => {
     res.send({ data: users });
   })
@@ -31,8 +33,8 @@ export const createUser = (
   if (!name || !about || !avatar) throw new ForbiddenError('Ошибка ввода параметров создания пользователя');
 
   return User.create({ name, about, avatar })
-    .then((director) => {
-      res.send({ data: director });
+    .then((user) => {
+      res.send({ _id: user._id });
     })
     .catch(next);
 };
@@ -47,7 +49,9 @@ export const getUserById = (
 ) => {
   const { id } = req.params;
 
-  return User.findById(id)
+  return User.findById(id).select(
+    '-__v',
+  )
     .then((user) => {
       if (!user) throw new NotFoundError('Нет пользователя с таким id');
       res.send({ data: user });
@@ -68,7 +72,13 @@ export const updateMe = (
   const { name, about } = req.body;
   if (!name || !about) throw new BadRequest('Ошибка ввода параметров изменения профиля');
 
-  return User.findByIdAndUpdate(res.locals?.user._id, { $set: { name, about } }, { new: true })
+  return User.findByIdAndUpdate(
+    res.locals?.user._id,
+    { $set: { name, about } },
+    { new: true },
+  ).select(
+    '-__v',
+  )
     .then((user) => {
       if (!user) throw new NotFoundError('Нет пользователя с таким id');
       res.send({ data: user });
@@ -89,7 +99,9 @@ export const updateMyAvatar = (
   const { avatar } = req.body;
   if (!avatar) throw new BadRequest('Ошибка ввода параметров аватара профиля');
 
-  return User.findByIdAndUpdate(res.locals?.user._id, { $set: { avatar } }, { new: true })
+  return User.findByIdAndUpdate(res.locals?.user._id, { $set: { avatar } }, { new: true }).select(
+    '-__v',
+  )
     .then((user) => {
       if (!user) throw new NotFoundError('Нет пользователя с таким id');
       res.send({ data: user });
