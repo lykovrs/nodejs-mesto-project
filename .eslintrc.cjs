@@ -35,6 +35,7 @@ module.exports = {
         "js": "never",
         "ts": "never"
       }
-    ]
+    ],
+    "no-underscore-dangle": "off"
   },
 };

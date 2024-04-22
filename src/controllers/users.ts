@@ -1,13 +1,19 @@
 import { NextFunction, Request, Response } from 'express';
 
 import User, { IUser } from '../models/user';
-import NotFoundError from '../errors/not-found-error';
+import { ForbiddenError, NotFoundError } from '../errors';
 
 /**
  * Получает список всех пользователей
  */
-export const getUsers = (req: Request, res: Response, next: NextFunction) => User.find({})
-  .then((users) => res.send({ data: users }))
+export const getUsers = (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => User.find({})
+  .then((users) => {
+    res.send({ data: users });
+  })
   .catch(next);
 
 /**
@@ -19,9 +25,12 @@ export const createUser = (
   next: NextFunction,
 ) => {
   const { name, about, avatar } = req.body;
+  if (!name || !about || !avatar) throw new ForbiddenError('Ошибка ввода параметров создания пользователя');
 
   return User.create({ name, about, avatar })
-    .then((director) => res.send({ data: director }))
+    .then((director) => {
+      res.send({ data: director });
+    })
     .catch(next);
 };
 

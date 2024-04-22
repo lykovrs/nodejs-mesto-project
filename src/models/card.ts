@@ -1,6 +1,8 @@
-import { Schema, model, ObjectId } from 'mongoose';
+import {
+  Schema, model, ObjectId,
+} from 'mongoose';
 
-interface ICard {
+export interface ICard {
   name: string;
   link: string;
   owner: ObjectId;
