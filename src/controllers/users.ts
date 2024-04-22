@@ -1,7 +1,10 @@
 import { NextFunction, Request, Response } from 'express';
 
 import User, { IUser } from '../models/user';
-import { ForbiddenError, NotFoundError } from '../errors';
+import {
+  BadRequest, ForbiddenError, NotFoundError, UnauthorizedError,
+} from '../errors';
+import { AuthContext } from '../types';
 
 /**
  * Получает список всех пользователей
@@ -45,6 +48,48 @@ export const getUserById = (
   const { id } = req.params;
 
   return User.findById(id)
+    .then((user) => {
+      if (!user) throw new NotFoundError('Нет пользователя с таким id');
+      res.send({ data: user });
+    })
+    .catch(next);
+};
+
+/**
+ * Обновляет данные текущего пользователя
+ */
+export const updateMe = (
+  req: Request<unknown, unknown, Omit<IUser, 'avatar'>>,
+  res: Response<unknown, AuthContext>,
+  next: NextFunction,
+) => {
+  if (!res.locals?.user._id) throw new UnauthorizedError('Для обновления профиля вы должны быть авторизованы');
+
+  const { name, about } = req.body;
+  if (!name || !about) throw new BadRequest('Ошибка ввода параметров изменения профиля');
+
+  return User.findByIdAndUpdate(res.locals?.user._id, { $set: { name, about } }, { new: true })
+    .then((user) => {
+      if (!user) throw new NotFoundError('Нет пользователя с таким id');
+      res.send({ data: user });
+    })
+    .catch(next);
+};
+
+/**
+ * Обновляет аватар текущего пользователя
+ */
+export const updateMyAvatar = (
+  req: Request<unknown, unknown, Omit<IUser, 'about' | 'name'>>,
+  res: Response<unknown, AuthContext>,
+  next: NextFunction,
+) => {
+  if (!res.locals?.user._id) throw new UnauthorizedError('Для обновления профиля вы должны быть авторизованы');
+
+  const { avatar } = req.body;
+  if (!avatar) throw new BadRequest('Ошибка ввода параметров аватара профиля');
+
+  return User.findByIdAndUpdate(res.locals?.user._id, { $set: { avatar } }, { new: true })
     .then((user) => {
       if (!user) throw new NotFoundError('Нет пользователя с таким id');
       res.send({ data: user });

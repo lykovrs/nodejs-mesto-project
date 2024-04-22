@@ -21,7 +21,7 @@ mongoose.connect('mongodb://localhost:27017/mestodb').then(() => {
 // временное решение авторизации
 app.use((req: Request, res: Response<unknown, AuthContext>, next: NextFunction) => {
   res.locals.user = {
-    _id: '662400bb4c6cb77df106e069', // вставьте сюда _id созданного в предыдущем пункте пользователя
+    _id: '662400bb4c6cb77df106e063', // вставьте сюда _id созданного в предыдущем пункте пользователя
   };
 
   next();
