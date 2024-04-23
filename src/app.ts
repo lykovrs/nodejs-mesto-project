@@ -38,17 +38,27 @@ router.use((req, res, next) => {
 });
 
 // тут перехватываем ошибки, которые нигде не обработались
-app.use((err: ServerError, req: unknown, res: Response) => {
+app.use((
+  err: ServerError | Error,
+  req: unknown,
+  res: Response,
+  // eslint-disable-next-line no-unused-vars,@typescript-eslint/no-unused-vars
+  next: NextFunction,
+) => {
+  const isCustomError = err instanceof ServerError;
   // если ошибка не опознана, отправляем кастомную пятисотую
-  if (!err.statusCode) {
+  if (!isCustomError) {
     const customError = new ServerError();
     res
       .status(customError.statusCode)
-      .send(customError.message);
+      .send(customError.resObj);
   } else {
     res
       .status(err.statusCode)
-      .send(err.message);
+      .send({
+        statusCode: err.statusCode,
+        message: err.message,
+      });
   }
 });
 
