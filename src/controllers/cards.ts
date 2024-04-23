@@ -7,7 +7,7 @@ import { constants } from 'http2';
 import Card, { ICard } from '../models/card';
 import { AuthContext } from '../types';
 import {
-  BadRequest, NotFoundError, UnauthorizedError,
+  BadRequest, NotFoundError,
 } from '../errors';
 import { badReqCardMessage, notFoundCardMessage } from './constants';
 
@@ -29,9 +29,6 @@ export const createCard = (
   next: NextFunction,
 ) => {
   const { name, link } = req.body;
-  if (!name || !link) throw new BadRequest(badReqCardMessage);
-
-  if (!res.locals?.user._id) throw new UnauthorizedError();
 
   return Card.create({ name, link, owner: res.locals.user._id })
     .then((card) => {
@@ -58,8 +55,6 @@ export const deleteCardById = (
 ) => {
   const { id } = req.params;
 
-  if (!res.locals?.user._id) throw new UnauthorizedError();
-
   return Card.findByIdAndDelete(id).select(['-__v', '-updatedAt'])
     .orFail(new NotFoundError(notFoundCardMessage))
     .then((card) => {
@@ -85,8 +80,6 @@ export const likeCardById = (
 ) => {
   const { id } = req.params;
 
-  if (!res.locals?.user._id) throw new UnauthorizedError();
-
   const options = {
     new: true,
   };
@@ -101,7 +94,14 @@ export const likeCardById = (
     .then((card) => {
       res.send({ data: card });
     })
-    .catch(next);
+    .catch((err) => {
+      const isMongoCastError = err instanceof MongooseError.CastError;
+      if (isMongoCastError) {
+        next(new BadRequest(notFoundCardMessage));
+      } else {
+        next(err);
+      }
+    });
 };
 
 /**
@@ -113,8 +113,6 @@ export const dislikeCardById = (
   next: NextFunction,
 ) => {
   const { id } = req.params;
-
-  if (!res.locals?.user._id) throw new UnauthorizedError();
 
   const options = {
     new: true,
@@ -130,5 +128,12 @@ export const dislikeCardById = (
     .then((card) => {
       res.send({ data: card });
     })
-    .catch(next);
+    .catch((err) => {
+      const isMongoCastError = err instanceof MongooseError.CastError;
+      if (isMongoCastError) {
+        next(new BadRequest(notFoundCardMessage));
+      } else {
+        next(err);
+      }
+    });
 };

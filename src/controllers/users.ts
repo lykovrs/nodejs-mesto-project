@@ -3,13 +3,12 @@ import { Error as MongooseError } from 'mongoose';
 import { constants } from 'http2';
 import User, { IUser } from '../models/user';
 import {
-  BadRequest, NotFoundError, UnauthorizedError,
+  BadRequest, NotFoundError,
 } from '../errors';
 import { AuthContext } from '../types';
 import {
   badReqAvatarEditMessage,
   badReqCreateUserMessage,
-  badReqUpdateMeMessage,
   badReqUserMessage,
   notFoundUserMessage,
 } from './constants';
@@ -24,9 +23,7 @@ export const getUsers = (
 ) => User.find({}).select(
   '-__v',
 )
-  .then((users) => {
-    res.send({ data: users });
-  })
+  .then((users) => res.send({ data: users }))
   .catch(next);
 
 /**
@@ -38,8 +35,6 @@ export const createUser = (
   next: NextFunction,
 ) => {
   const { name, about, avatar } = req.body;
-
-  if (!name || !about || !avatar) throw new BadRequest(badReqCreateUserMessage);
 
   return User.create({ name, about, avatar })
     .then((user) => {
@@ -74,9 +69,8 @@ export const getUserById = (
       res.send({ data: user });
     })
     .catch((err) => {
-      const isMongoValidationError = err instanceof MongooseError.ValidationError;
       const isMongoCastError = err instanceof MongooseError.CastError;
-      if (isMongoValidationError || isMongoCastError) {
+      if (isMongoCastError) {
         next(new BadRequest(badReqUserMessage));
       } else {
         next(err);
@@ -92,10 +86,7 @@ export const updateMe = (
   res: Response<unknown, AuthContext>,
   next: NextFunction,
 ) => {
-  if (!res.locals?.user._id) throw new UnauthorizedError();
-
   const { name, about } = req.body;
-  if (!name || !about) throw new BadRequest(badReqUpdateMeMessage);
 
   return User.findByIdAndUpdate(
     res.locals?.user._id,
@@ -111,7 +102,8 @@ export const updateMe = (
     })
     .catch((err) => {
       const isMongoValidationError = err instanceof MongooseError.ValidationError;
-      if (isMongoValidationError) {
+      const isMongoCastError = err instanceof MongooseError.CastError;
+      if (isMongoValidationError || isMongoCastError) {
         next(new BadRequest(badReqUserMessage));
       } else {
         next(err);
@@ -127,10 +119,7 @@ export const updateMyAvatar = (
   res: Response<unknown, AuthContext>,
   next: NextFunction,
 ) => {
-  if (!res.locals?.user._id) throw new UnauthorizedError();
-
   const { avatar } = req.body;
-  if (!avatar) throw new BadRequest(badReqAvatarEditMessage);
 
   return User.findByIdAndUpdate(
     res.locals?.user._id,

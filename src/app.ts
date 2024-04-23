@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 import path from 'path';
 import 'dotenv/config';
 
-import { ServerError } from './errors';
+import { NotFoundError, ServerError } from './errors';
 
 import { AuthContext } from './types';
 import router from './routes';
@@ -12,7 +12,9 @@ const { PORT = 3000, MONGO_URL = 'mongodb://127.0.0.1:27017/mestodb' } = process
 
 const app = express();
 
+// парсим входящий json
 app.use(express.json());
+// парсим данные из урла
 app.use(express.urlencoded({ extended: true }));
 
 // временное решение авторизации
@@ -24,24 +26,31 @@ app.use((req: Request, res: Response<unknown, AuthContext>, next: NextFunction) 
   next();
 });
 
+// точка входа в роутинг
 app.use('/', router);
 
+// отдаем статику из папки public
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use((err: ServerError, req: unknown, res: Response) => {
-  // если у ошибки нет статуса, выставляем 500
-  const { statusCode = 500, message } = err;
-
-  res
-    .status(statusCode)
-    .send({
-      message: statusCode === 500
-        ? 'На сервере произошла ошибка'
-        : message,
-    });
+// обработка роутов, которые нигде не обработаны выше
+router.use((req, res, next) => {
+  next(new NotFoundError('Страница не найдена'));
 });
 
-app.get('*', (req, res) => res.send('Page Not found 404'));
+// тут перехватываем ошибки, которые нигде не обработались
+app.use((err: ServerError, req: unknown, res: Response) => {
+  // если ошибка не опознана, отправляем кастомную пятисотую
+  if (!err.statusCode) {
+    const customError = new ServerError();
+    res
+      .status(customError.statusCode)
+      .send(customError.message);
+  } else {
+    res
+      .status(err.statusCode)
+      .send(err.message);
+  }
+});
 
 const connect = async () => {
   try {
