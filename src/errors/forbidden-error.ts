@@ -1,11 +1,12 @@
+import { constants } from 'http2';
 import ServerError from './server-error';
 
 /**
  * Кастомная ошибка если не хватает прав
  */
 export default class ForbiddenError extends ServerError {
-  constructor(message: string) {
+  constructor(message: string = 'Не хватает прав') {
     super(message);
-    this.statusCode = 403;
+    this.statusCode = constants.HTTP_STATUS_FORBIDDEN;
   }
 }

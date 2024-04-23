@@ -1,22 +1,19 @@
 import express, { Response, Request, NextFunction } from 'express';
 import mongoose from 'mongoose';
 import path from 'path';
-import { ServerError } from './errors';
-import { usersRouter, cardsRouter } from './routes';
-import { AuthContext } from './types';
+import 'dotenv/config';
 
-const { PORT = 3000 } = process.env;
+import { ServerError } from './errors';
+
+import { AuthContext } from './types';
+import router from './routes';
+
+const { PORT = 3000, MONGO_URL = 'mongodb://127.0.0.1:27017/mestodb' } = process.env;
 
 const app = express();
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
-mongoose.connect('mongodb://localhost:27017/mestodb').then(() => {
-  console.info('🍀 Подключение к БД прошло успешно 🍀');
-}, () => {
-  console.error('💩 При подключении к БД что-то пошло не так 💩');
-});
 
 // временное решение авторизации
 app.use((req: Request, res: Response<unknown, AuthContext>, next: NextFunction) => {
@@ -27,8 +24,7 @@ app.use((req: Request, res: Response<unknown, AuthContext>, next: NextFunction) 
   next();
 });
 
-app.use('/users', usersRouter);
-app.use('/cards', cardsRouter);
+app.use('/', router);
 
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -45,6 +41,18 @@ app.use((err: ServerError, req: unknown, res: Response) => {
     });
 });
 
-app.listen(PORT, () => {
-  console.info('🏆 Сервер успешно запущен на порту: ', PORT, ' 🏆');
-});
+app.get('*', (req, res) => res.send('Page Not found 404'));
+
+const connect = async () => {
+  try {
+    await mongoose.connect(MONGO_URL);
+    console.info('🍀 Подключение к БД прошло успешно 🍀');
+    await app.listen(PORT, () => {
+      console.info('🏆 Сервер успешно запущен на порту: ', PORT, ' 🏆');
+    });
+  } catch (e) {
+    console.error('💩 При инициализации приложения что-то пошло не так... 💩', e);
+  }
+};
+
+connect();

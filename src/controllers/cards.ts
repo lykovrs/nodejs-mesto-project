@@ -1,12 +1,15 @@
 import {
   NextFunction, Request, Response,
 } from 'express';
+import { Error as MongooseError } from 'mongoose';
 
+import { constants } from 'http2';
 import Card, { ICard } from '../models/card';
 import { AuthContext } from '../types';
 import {
   BadRequest, NotFoundError, UnauthorizedError,
 } from '../errors';
+import { badReqCardMessage, notFoundCardMessage } from './constants';
 
 /**
  * Возвращает все карточки
@@ -25,17 +28,20 @@ export const createCard = (
   res: Response<unknown, AuthContext>,
   next: NextFunction,
 ) => {
-  const badReqMessage = 'Ошибка ввода параметров создания карточки';
   const { name, link } = req.body;
-  if (!name || !link) throw new BadRequest(badReqMessage);
+  if (!name || !link) throw new BadRequest(badReqCardMessage);
 
-  if (!res.locals?.user._id) throw new UnauthorizedError('Для создания карточки вы должны быть авторизованы');
+  if (!res.locals?.user._id) throw new UnauthorizedError();
 
   return Card.create({ name, link, owner: res.locals.user._id })
-    .then((card) => res.send({ _id: card._id }))
+    .then((card) => {
+      res.status(constants.HTTP_STATUS_CREATED);
+      res.send({ _id: card._id });
+    })
     .catch((err) => {
-      if (err.name === 'ValidationError') {
-        next(new BadRequest(badReqMessage));
+      const isMongoValidationError = err instanceof MongooseError.ValidationError;
+      if (isMongoValidationError) {
+        next(new BadRequest(badReqCardMessage));
       } else {
         next(err);
       }
@@ -51,17 +57,18 @@ export const deleteCardById = (
   next: NextFunction,
 ) => {
   const { id } = req.params;
-  const badReqMessage = 'Нет карточки с таким id';
-  if (!res.locals?.user._id) throw new UnauthorizedError('Для удаления карточки вы должны быть авторизованы');
+
+  if (!res.locals?.user._id) throw new UnauthorizedError();
 
   return Card.findByIdAndDelete(id).select(['-__v', '-updatedAt'])
+    .orFail(new NotFoundError(notFoundCardMessage))
     .then((card) => {
-      if (!card) throw new NotFoundError(badReqMessage);
       res.send({ _id: card._id });
     })
     .catch((err) => {
-      if (err.name === 'CastError') {
-        next(new BadRequest(badReqMessage));
+      const isMongoCastError = err instanceof MongooseError.CastError;
+      if (isMongoCastError) {
+        next(new BadRequest(notFoundCardMessage));
       } else {
         next(err);
       }
@@ -78,7 +85,7 @@ export const likeCardById = (
 ) => {
   const { id } = req.params;
 
-  if (!res.locals?.user._id) throw new UnauthorizedError('Для реакции вы должны быть авторизованы');
+  if (!res.locals?.user._id) throw new UnauthorizedError();
 
   const options = {
     new: true,
@@ -88,9 +95,10 @@ export const likeCardById = (
     $addToSet: { likes: res.locals.user._id },
   };
 
-  return Card.findByIdAndUpdate(id, update, options).select(['-__v', '-updatedAt'])
+  return Card.findByIdAndUpdate(id, update, options)
+    .select(['-__v', '-updatedAt'])
+    .orFail(new NotFoundError(notFoundCardMessage))
     .then((card) => {
-      if (!card) throw new NotFoundError('Нет карточки с таким id');
       res.send({ data: card });
     })
     .catch(next);
@@ -106,7 +114,7 @@ export const dislikeCardById = (
 ) => {
   const { id } = req.params;
 
-  if (!res.locals?.user._id) throw new UnauthorizedError('Для реакции вы должны быть авторизованы');
+  if (!res.locals?.user._id) throw new UnauthorizedError();
 
   const options = {
     new: true,
@@ -116,9 +124,10 @@ export const dislikeCardById = (
     $pull: { likes: res.locals.user._id },
   };
 
-  return Card.findByIdAndUpdate(id, update, options).select(['-__v', '-updatedAt'])
+  return Card.findByIdAndUpdate(id, update, options)
+    .select(['-__v', '-updatedAt'])
+    .orFail(new NotFoundError(notFoundCardMessage))
     .then((card) => {
-      if (!card) throw new NotFoundError('Нет карточки с таким id');
       res.send({ data: card });
     })
     .catch(next);

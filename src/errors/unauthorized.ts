@@ -1,11 +1,12 @@
+import { constants } from 'http2';
 import ServerError from './server-error';
 
 /**
  * Кастомная ошибка если пользователь не авторизован
  */
 export default class UnauthorizedError extends ServerError {
-  constructor(message: string) {
+  constructor(message: string = 'Необходима авторизация') {
     super(message);
-    this.statusCode = 401;
+    this.statusCode = constants.HTTP_STATUS_NETWORK_AUTHENTICATION_REQUIRED;
   }
 }
