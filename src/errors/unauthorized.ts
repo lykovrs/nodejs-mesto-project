@@ -7,6 +7,6 @@ import ServerError from './server-error';
 export default class UnauthorizedError extends ServerError {
   constructor(message: string = 'Необходима авторизация') {
     super(message);
-    this.statusCode = constants.HTTP_STATUS_NETWORK_AUTHENTICATION_REQUIRED;
+    this.statusCode = constants.HTTP_STATUS_UNAUTHORIZED;
   }
 }
