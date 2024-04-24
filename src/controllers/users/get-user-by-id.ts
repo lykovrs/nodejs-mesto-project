@@ -20,7 +20,7 @@ const getUserById = (
   const { id } = req.params;
 
   return User.findById(id).select(
-    '-__v',
+    ['-__v', '-password'],
   )
     .orFail(new NotFoundError(notFoundUserMessage))
     .then((user) => {

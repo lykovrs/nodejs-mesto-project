@@ -6,41 +6,40 @@ import {
 } from '../../errors';
 import { AuthContext } from '../../types';
 import {
-  badReqUserMessage,
+  badReqAvatarEditMessage,
   notFoundUserMessage,
 } from '../constants';
 
 /**
- * Обновляет данные текущего пользователя
+ * Обновляет аватар текущего пользователя
  */
-const updateMe = (
-  req: Request<unknown, unknown, Omit<IUser, 'avatar'>>,
+const updateCurrentUserAvatar = (
+  req: Request<unknown, unknown, Omit<IUser, 'about' | 'name'>>,
   res: Response<unknown, AuthContext>,
   next: NextFunction,
 ) => {
-  const { name, about } = req.body;
+  const { avatar } = req.body;
 
   return User.findByIdAndUpdate(
     res.locals?.user._id,
-    { $set: { name, about } },
+    { $set: { avatar } },
     { new: true, runValidators: true },
   )
     .orFail(new NotFoundError(notFoundUserMessage))
     .select(
-      '-__v',
+      ['-__v', '-password'],
     )
     .then((user) => {
       res.send({ data: user });
     })
     .catch((err) => {
       const isMongoValidationError = err instanceof MongooseError.ValidationError;
-      const isMongoCastError = err instanceof MongooseError.CastError;
-      if (isMongoValidationError || isMongoCastError) {
-        next(new BadRequest(badReqUserMessage));
+      if (isMongoValidationError) {
+        next(new BadRequest(badReqAvatarEditMessage));
       } else {
         next(err);
       }
     });
 };
 
-export default updateMe;
+export default updateCurrentUserAvatar;

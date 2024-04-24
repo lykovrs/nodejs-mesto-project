@@ -22,23 +22,32 @@ const login = async (
   } = req.body;
 
   try {
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email }).select('+password');
     if (!user) {
       return next(new BadRequest('Что-то не так с почтой или паролем'));
     }
 
-    const matched = bcrypt.compare(password, user.password);
+    const matched = await bcrypt.compare(password, user.password);
 
     if (!matched) {
       return next(new BadRequest('Неправильные почта или пароль'));
     }
 
+    const token = jwt.sign(
+      { _id: user._id },
+      JWT_SECRET,
+      { expiresIn: '7d' },
+    );
+
+    const sevenDaysByMs = 3600000 * 24 * 7;
+
+    res.cookie('jwt', token, {
+      maxAge: sevenDaysByMs,
+      httpOnly: true,
+    });
+
     return res.send({
-      token: jwt.sign(
-        { _id: user._id },
-        JWT_SECRET,
-        { expiresIn: '7d' },
-      ),
+      token,
     });
   } catch (e) {
     return next(e);

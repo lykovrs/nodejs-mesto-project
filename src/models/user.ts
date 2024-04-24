@@ -42,6 +42,7 @@ const userSchema = new Schema<IUser>({
     required: true,
     validate: isStrongPassword,
     message: 'Неправильный формат пароля',
+    select: false,
   },
 });
 

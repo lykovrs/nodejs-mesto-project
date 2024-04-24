@@ -6,40 +6,47 @@ import {
 } from '../../errors';
 import { AuthContext } from '../../types';
 import {
-  badReqAvatarEditMessage,
+  badReqUserMessage,
   notFoundUserMessage,
 } from '../constants';
 
 /**
- * Обновляет аватар текущего пользователя
+ * Обновляет данные текущего пользователя
  */
-const updateMyAvatar = (
-  req: Request<unknown, unknown, Omit<IUser, 'about' | 'name'>>,
+const updateCurrentUser = (
+  req: Request<unknown, unknown, Omit<IUser, 'avatar'>>,
   res: Response<unknown, AuthContext>,
   next: NextFunction,
 ) => {
-  const { avatar } = req.body;
+  const {
+    name, about, email, password,
+  } = req.body;
 
   return User.findByIdAndUpdate(
     res.locals?.user._id,
-    { $set: { avatar } },
+    {
+      $set: {
+        name, about, email, password,
+      },
+    },
     { new: true, runValidators: true },
   )
-    .orFail(new NotFoundError(notFoundUserMessage))
     .select(
-      '-__v',
+      ['-__v', '-password'],
     )
+    .orFail(new NotFoundError(notFoundUserMessage))
     .then((user) => {
       res.send({ data: user });
     })
     .catch((err) => {
       const isMongoValidationError = err instanceof MongooseError.ValidationError;
-      if (isMongoValidationError) {
-        next(new BadRequest(badReqAvatarEditMessage));
+      const isMongoCastError = err instanceof MongooseError.CastError;
+      if (isMongoValidationError || isMongoCastError) {
+        next(new BadRequest(badReqUserMessage));
       } else {
         next(err);
       }
     });
 };
 
-export default updateMyAvatar;
+export default updateCurrentUser;
