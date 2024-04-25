@@ -1,14 +1,9 @@
 import { NextFunction, Request, Response } from 'express';
-import { Error as MongooseError } from 'mongoose';
 import { constants } from 'http2';
 import bcrypt from 'bcryptjs';
+import { celebrate, Joi } from 'celebrate';
 import User, { IUser } from '../../models/user';
-import {
-  BadRequest,
-} from '../../errors';
-import {
-  badReqCreateUserMessage,
-} from '../constants';
+import { joiPasswordValidator } from './constants';
 
 /**
  * Создает нового пользователя
@@ -39,12 +34,18 @@ const createUser = async (
     res.status(constants.HTTP_STATUS_CREATED);
     return res.send({ _id: user._id });
   } catch (err) {
-    const isMongoValidationError = err instanceof MongooseError.ValidationError;
-    if (isMongoValidationError) {
-      return next(new BadRequest(badReqCreateUserMessage));
-    }
     return next(err);
   }
 };
+
+export const createUserInputRules = celebrate({
+  body: Joi.object().keys({
+    name: Joi.string().min(2).max(30),
+    about: Joi.string().min(2).max(200),
+    avatar: Joi.string().uri(),
+    email: Joi.string().email().required(),
+    password: joiPasswordValidator.required(),
+  }),
+});
 
 export default createUser;

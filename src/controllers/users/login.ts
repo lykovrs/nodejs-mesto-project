@@ -1,10 +1,12 @@
 import { NextFunction, Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import { celebrate, Joi } from 'celebrate';
 import User from '../../models/user';
 import {
   BadRequest,
 } from '../../errors';
+import { joiPasswordValidator } from './constants';
 
 const { JWT_SECRET = 'super-strong-secret' } = process.env;
 
@@ -53,5 +55,12 @@ const login = async (
     return next(e);
   }
 };
+
+export const loginInputRules = celebrate({
+  body: Joi.object().keys({
+    email: Joi.string().email().required(),
+    password: joiPasswordValidator,
+  }),
+});
 
 export default login;

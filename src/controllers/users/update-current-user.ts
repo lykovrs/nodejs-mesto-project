@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 import { Error as MongooseError } from 'mongoose';
+import { celebrate, Joi } from 'celebrate';
 import User, { IUser } from '../../models/user';
 import {
   BadRequest, NotFoundError,
@@ -9,6 +10,7 @@ import {
   badReqUserMessage,
   notFoundUserMessage,
 } from '../constants';
+import { joiPasswordValidator } from './constants';
 
 /**
  * Обновляет данные текущего пользователя
@@ -48,5 +50,14 @@ const updateCurrentUser = (
       }
     });
 };
+
+export const updateCurrentUserInputRules = celebrate({
+  body: Joi.object().keys({
+    name: Joi.string().min(2).max(30),
+    about: Joi.string().min(2).max(200),
+    email: Joi.string().email(),
+    password: joiPasswordValidator,
+  }),
+});
 
 export default updateCurrentUser;

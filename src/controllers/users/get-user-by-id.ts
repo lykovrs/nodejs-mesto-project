@@ -1,11 +1,9 @@
 import { NextFunction, Request, Response } from 'express';
-import { Error as MongooseError } from 'mongoose';
 import User from '../../models/user';
 import {
-  BadRequest, NotFoundError,
+  NotFoundError,
 } from '../../errors';
 import {
-  badReqUserMessage,
   notFoundUserMessage,
 } from '../constants';
 
@@ -27,12 +25,7 @@ const getUserById = (
       res.send({ data: user });
     })
     .catch((err) => {
-      const isMongoCastError = err instanceof MongooseError.CastError;
-      if (isMongoCastError) {
-        next(new BadRequest(badReqUserMessage));
-      } else {
-        next(err);
-      }
+      next(err);
     });
 };
 

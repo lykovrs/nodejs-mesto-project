@@ -7,6 +7,6 @@ import ServerError from './server-error';
 export default class BadRequest extends ServerError {
   constructor(message: string = 'Ошибка ввода параметров') {
     super(message);
-    this.statusCode = constants.HTTP_STATUS_BAD_REQUEST;
+    this.code = constants.HTTP_STATUS_BAD_REQUEST;
   }
 }

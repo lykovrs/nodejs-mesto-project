@@ -1,6 +1,5 @@
 import { Schema, model } from 'mongoose';
 import isEmail from 'validator/lib/isEmail';
-import isStrongPassword from 'validator/lib/isStrongPassword';
 import isURL from 'validator/lib/isURL';
 
 export interface IUser {
@@ -40,8 +39,6 @@ const userSchema = new Schema<IUser>({
   password: {
     type: String,
     required: true,
-    validate: isStrongPassword,
-    message: 'Неправильный формат пароля',
     select: false,
   },
 });

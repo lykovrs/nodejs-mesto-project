@@ -1,12 +1,11 @@
 import { NextFunction, Request, Response } from 'express';
-import { Error as MongooseError } from 'mongoose';
+import { celebrate, Joi } from 'celebrate';
 import User, { IUser } from '../../models/user';
 import {
-  BadRequest, NotFoundError,
+  NotFoundError,
 } from '../../errors';
 import { AuthContext } from '../../types';
 import {
-  badReqAvatarEditMessage,
   notFoundUserMessage,
 } from '../constants';
 
@@ -33,13 +32,14 @@ const updateCurrentUserAvatar = (
       res.send({ data: user });
     })
     .catch((err) => {
-      const isMongoValidationError = err instanceof MongooseError.ValidationError;
-      if (isMongoValidationError) {
-        next(new BadRequest(badReqAvatarEditMessage));
-      } else {
-        next(err);
-      }
+      next(err);
     });
 };
+
+export const updateCurrentUserAvatarRules = celebrate({
+  body: Joi.object().keys({
+    avatar: Joi.string().uri(),
+  }),
+});
 
 export default updateCurrentUserAvatar;

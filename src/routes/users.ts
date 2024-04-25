@@ -1,20 +1,24 @@
 import { Router } from 'express';
+
 import {
   getUsers,
   createUser,
   getUserById,
   updateCurrentUser,
+  updateCurrentUserInputRules,
   updateCurrentUserAvatar,
+  updateCurrentUserAvatarRules,
   getCurrentUser,
+  createUserInputRules,
 } from '../controllers/users';
 
 const router = Router();
 
 router.get('/', getUsers);
-router.post('/', createUser);
+router.post('/', createUserInputRules, createUser);
 router.get('/me', getCurrentUser);
-router.patch('/me', updateCurrentUser);
-router.patch('/me/avatar', updateCurrentUserAvatar);
+router.patch('/me', updateCurrentUserInputRules, updateCurrentUser);
+router.patch('/me/avatar', updateCurrentUserAvatarRules, updateCurrentUserAvatar);
 router.get('/:id', getUserById);
 
 export default router;
