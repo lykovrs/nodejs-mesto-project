@@ -8,7 +8,7 @@ import { joiPasswordValidator } from './constants';
 /**
  * Создает нового пользователя
  */
-const createUser = async (
+export const createUser = async (
   req: Request<unknown, unknown, IUser>,
   res: Response,
   next: NextFunction,
@@ -47,5 +47,3 @@ export const createUserInputRules = celebrate({
     password: joiPasswordValidator.required(),
   }),
 });
-
-export default createUser;

@@ -2,7 +2,7 @@ import { constants } from 'http2';
 /**
  * Общая серверная ошибка
  */
-export default class ServerError extends Error {
+export class ServerError extends Error {
   message: string;
 
   code: number;

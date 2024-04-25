@@ -5,7 +5,7 @@ import { AuthContext } from '../../types';
 /**
  * Получает данные текущего пользователя
  */
-const getCurrentUser = async (
+export const getCurrentUser = async (
   req: Request,
   res: Response<unknown, AuthContext>,
   next: NextFunction,
@@ -22,5 +22,3 @@ const getCurrentUser = async (
     return next(err);
   }
 };
-
-export default getCurrentUser;

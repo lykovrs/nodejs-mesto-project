@@ -1,13 +1,11 @@
 import { NextFunction, Request, Response } from 'express';
-import { Error as MongooseError } from 'mongoose';
 import { celebrate, Joi } from 'celebrate';
 import User, { IUser } from '../../models/user';
 import {
-  BadRequest, NotFoundError,
+  NotFoundError,
 } from '../../errors';
 import { AuthContext } from '../../types';
 import {
-  badReqUserMessage,
   notFoundUserMessage,
 } from '../constants';
 import { joiPasswordValidator } from './constants';
@@ -15,7 +13,7 @@ import { joiPasswordValidator } from './constants';
 /**
  * Обновляет данные текущего пользователя
  */
-const updateCurrentUser = (
+export const updateCurrentUser = (
   req: Request<unknown, unknown, Omit<IUser, 'avatar'>>,
   res: Response<unknown, AuthContext>,
   next: NextFunction,
@@ -41,13 +39,7 @@ const updateCurrentUser = (
       res.send({ data: user });
     })
     .catch((err) => {
-      const isMongoValidationError = err instanceof MongooseError.ValidationError;
-      const isMongoCastError = err instanceof MongooseError.CastError;
-      if (isMongoValidationError || isMongoCastError) {
-        next(new BadRequest(badReqUserMessage));
-      } else {
-        next(err);
-      }
+      next(err);
     });
 };
 
@@ -59,5 +51,3 @@ export const updateCurrentUserInputRules = celebrate({
     password: joiPasswordValidator,
   }),
 });
-
-export default updateCurrentUser;

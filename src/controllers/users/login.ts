@@ -13,7 +13,7 @@ const { JWT_SECRET = 'super-strong-secret' } = process.env;
 /**
  * Аутентифицирует пользователя
  */
-const login = async (
+export const login = async (
   req: Request<unknown, unknown, {email: string; password: string}>,
   res: Response,
   next: NextFunction,
@@ -62,5 +62,3 @@ export const loginInputRules = celebrate({
     password: joiPasswordValidator,
   }),
 });
-
-export default login;

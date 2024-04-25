@@ -1,19 +1,18 @@
 import {
   NextFunction, Request, Response,
 } from 'express';
-import { Error as MongooseError } from 'mongoose';
 
 import Card from '../../models/card';
 import { AuthContext } from '../../types';
 import {
-  BadRequest, NotFoundError,
+  NotFoundError,
 } from '../../errors';
 import { notFoundCardMessage } from '../constants';
 
 /**
  * Удаляет лайк с карточки
  */
-const dislikeCardById = (
+export const dislikeCardById = (
   req: Request<{ id: string }>,
   res: Response<unknown, AuthContext>,
   next: NextFunction,
@@ -35,13 +34,6 @@ const dislikeCardById = (
       res.send({ data: card });
     })
     .catch((err) => {
-      const isMongoCastError = err instanceof MongooseError.CastError;
-      if (isMongoCastError) {
-        next(new BadRequest(notFoundCardMessage));
-      } else {
-        next(err);
-      }
+      next(err);
     });
 };
-
-export default dislikeCardById;

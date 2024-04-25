@@ -1,15 +1,11 @@
 import {
   NextFunction, Request, Response,
 } from 'express';
-import { Error as MongooseError } from 'mongoose';
 
 import { constants } from 'http2';
+import { celebrate, Joi } from 'celebrate';
 import Card, { ICard } from '../../models/card';
 import { AuthContext } from '../../types';
-import {
-  BadRequest,
-} from '../../errors';
-import { badReqCardMessage } from '../constants';
 
 /**
  * Создаёт карточку
@@ -27,13 +23,13 @@ export const createCard = (
       res.send({ _id: card._id });
     })
     .catch((err) => {
-      const isMongoValidationError = err instanceof MongooseError.ValidationError;
-      if (isMongoValidationError) {
-        next(new BadRequest(badReqCardMessage));
-      } else {
-        next(err);
-      }
+      next(err);
     });
 };
 
-export default createCard;
+export const createCardInputRules = celebrate({
+  body: Joi.object().keys({
+    name: Joi.string().min(2).max(30),
+    link: Joi.string().uri(),
+  }),
+});

@@ -12,7 +12,7 @@ import {
 /**
  * Обновляет аватар текущего пользователя
  */
-const updateCurrentUserAvatar = (
+export const updateCurrentUserAvatar = (
   req: Request<unknown, unknown, Omit<IUser, 'about' | 'name'>>,
   res: Response<unknown, AuthContext>,
   next: NextFunction,
@@ -41,5 +41,3 @@ export const updateCurrentUserAvatarRules = celebrate({
     avatar: Joi.string().uri(),
   }),
 });
-
-export default updateCurrentUserAvatar;

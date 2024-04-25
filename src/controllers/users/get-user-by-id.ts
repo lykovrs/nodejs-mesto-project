@@ -10,7 +10,7 @@ import {
 /**
  * Получает пользователя по идентификатору из БД
  */
-const getUserById = (
+export const getUserById = (
   req: Request<{ id: string }>,
   res: Response,
   next: NextFunction,
@@ -28,5 +28,3 @@ const getUserById = (
       next(err);
     });
 };
-
-export default getUserById;

@@ -7,7 +7,7 @@ import User from '../../models/user';
 /**
  * Получает список всех пользователей
  */
-const getUsers = async (
+export const getUsers = async (
   req: Request,
   res: Response,
   next: NextFunction,
@@ -22,5 +22,3 @@ const getUsers = async (
     next(e);
   }
 };
-
-export default getUsers;
