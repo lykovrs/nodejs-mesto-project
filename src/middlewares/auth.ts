@@ -12,7 +12,11 @@ const handleAuthError = (next: NextFunction) => {
 /**
  * Читает токен из кук и добавляет данные пользователя в контекст
  */
-export default (req: Request, res: Response<unknown, AuthContext>, next: NextFunction) => {
+export const authMiddleware = (
+  req: Request,
+  res: Response<unknown, AuthContext>,
+  next: NextFunction,
+) => {
   const { jwt } = req.cookies;
 
   if (!jwt) {

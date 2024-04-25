@@ -6,7 +6,7 @@ import { ServerError, BadRequest } from '../errors';
 /**
  * Централизованная обработка ошибок
  */
-export default (
+export const errorMiddleware = (
   err: ServerError | Error | MongooseError,
   req: unknown,
   res: Response,
@@ -55,6 +55,16 @@ export default (
         message: err.message,
       });
   }
+  // если ошибка валидации в схеме монгуса
+  const isMongoValidationCastError = err instanceof MongooseError.ValidationError;
+  if (isMongoValidationCastError) {
+    const message = Object.keys(err.errors).join(',');
+    const customError = new BadRequest(message);
+    return res
+      .status(customError.code)
+      .send(customError.resObj);
+  }
+
   // если ошибка не опознана, отправляем кастомную пятисотую
   const customError = new ServerError();
   return res

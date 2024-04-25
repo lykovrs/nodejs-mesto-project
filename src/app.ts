@@ -7,7 +7,7 @@ import 'dotenv/config';
 import { NotFoundError } from './errors';
 
 import router from './routes';
-import error from './middlewares/error';
+import { errorMiddleware, errorLoggerMiddleware, requestLoggerMiddleware } from './middlewares';
 
 const { PORT = 3000, MONGO_URL = 'mongodb://127.0.0.1:27017/mestodb' } = process.env;
 
@@ -19,6 +19,8 @@ app.use(cookieParser());
 app.use(express.json());
 // парсим данные из урла
 app.use(express.urlencoded({ extended: true }));
+// логгируем запросы
+app.use(requestLoggerMiddleware);
 // отдаем статику из папки public
 app.use(express.static(path.join(__dirname, 'public')));
 // точка входа в роутинг
@@ -27,9 +29,10 @@ app.use('/', router);
 router.use((req, res, next) => {
   next(new NotFoundError('Страница не найдена'));
 });
-
+// логгируем ошибки
+app.use(errorLoggerMiddleware);
 // тут перехватываем ошибки, которые нигде не обработались
-app.use(error);
+app.use(errorMiddleware);
 
 const connect = async () => {
   try {

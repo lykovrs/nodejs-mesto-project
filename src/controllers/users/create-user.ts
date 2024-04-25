@@ -37,7 +37,6 @@ export const createUser = async (
     return next(err);
   }
 };
-
 export const createUserInputRules = celebrate({
   body: Joi.object().keys({
     name: Joi.string().min(2).max(30),

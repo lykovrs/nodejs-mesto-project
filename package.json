@@ -4,8 +4,8 @@
   "description": "бэкенд для сервиса Место",
   "main": "index.js",
   "scripts": {
-    "lint": "npx eslint src/**",
-    "lint fix": "npx eslint src/** --fix",
+    "lint": "npx eslint src/** --no-error-on-unmatched-pattern",
+    "lint fix": "npx eslint src/** --fix --no-error-on-unmatched-pattern",
     "start": "ts-node ./src/app.ts",
     "dev": "ts-node-dev --respawn --pretty --transpile-only src/app.ts",
     "build": "rimraf dist && tsc "
@@ -42,8 +42,11 @@
     "cookie-parser": "^1.4.6",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
+    "express-winston": "^4.2.0",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.3.2",
-    "validator": "^13.11.0"
+    "validator": "^13.11.0",
+    "winston": "^3.13.0",
+    "winston-daily-rotate-file": "^5.0.0"
   }
 }

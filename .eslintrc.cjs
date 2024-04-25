@@ -38,5 +38,5 @@ module.exports = {
     ],
     "no-underscore-dangle": ["error", { "allow": ["_id"] }],
     "import/prefer-default-export": "off",
-  },
+  }
 };
