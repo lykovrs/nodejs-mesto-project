@@ -49,7 +49,7 @@ export const login = async (
     });
 
     return res.send({
-      token,
+      token: `Bearer ${token}`,
     });
   } catch (e) {
     return next(e);

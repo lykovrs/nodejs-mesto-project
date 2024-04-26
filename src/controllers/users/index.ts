@@ -5,3 +5,4 @@ export { updateCurrentUser, updateCurrentUserInputRules } from './update-current
 export { getCurrentUser } from './get-current-user';
 export { updateCurrentUserAvatar, updateCurrentUserAvatarRules } from './update-current-user-avatar';
 export { login, loginInputRules } from './login';
+export { logout, logoutRules } from './logout';
