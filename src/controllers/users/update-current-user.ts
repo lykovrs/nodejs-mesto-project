@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from 'express';
 import { celebrate, Joi } from 'celebrate';
 import User, { IUser } from '../../models/user';
 import {
+  BadRequest,
   NotFoundError,
 } from '../../errors';
 import { AuthContext } from '../../types';
@@ -39,7 +40,10 @@ export const updateCurrentUser = (
       res.send({ data: user });
     })
     .catch((err) => {
-      next(err);
+      if ((<Error>err).name === 'ValidationError') {
+        return next(new BadRequest());
+      }
+      return next(err);
     });
 };
 

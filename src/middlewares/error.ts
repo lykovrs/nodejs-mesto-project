@@ -10,13 +10,11 @@ export const errorMiddleware = (
   err: ServerError | Error | MongooseError,
   req: unknown,
   res: Response,
-  // eslint-disable-next-line no-unused-vars,@typescript-eslint/no-unused-vars
   next: NextFunction,
 ) => {
   // если ошибка валидации Celebrate
   if (isCelebrateError(err)) {
-    // eslint-disable-next-line no-unused-vars,@typescript-eslint/no-unused-vars
-    const message = Array.from(err.details).map(([key, detail]) => detail).join(',');
+    const message = Array.from(err.details).map((args) => args[1]).join(',');
     const customError = new BadRequest(message);
     return res
       .status(customError.code)
@@ -32,19 +30,6 @@ export const errorMiddleware = (
       .send(customError.resObj);
   }
 
-  // если ошибка дубликата ключа
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-expect-error
-  const isMongoDuplicateKeyError = err.name === 'MongoServerError' && err.code === 11000;
-  if (isMongoDuplicateKeyError) {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-expect-error
-    const customError = new BadRequest(`Такое значение ${Object.keys(err.keyValue)[0]} уже есть, значение должно быть уникальным`);
-    return res
-      .status(customError.code)
-      .send(customError.resObj);
-  }
-
   // если это наша ошибка
   const isCustomError = err instanceof ServerError;
   if (isCustomError) {
@@ -55,19 +40,13 @@ export const errorMiddleware = (
         message: err.message,
       });
   }
-  // если ошибка валидации в схеме монгуса
-  const isMongoValidationCastError = err instanceof MongooseError.ValidationError;
-  if (isMongoValidationCastError) {
-    const message = Object.keys(err.errors).join(',');
-    const customError = new BadRequest(message);
+
+  if (err) {
+    // если ошибка не опознана, отправляем кастомную пятисотую
+    const customError = new ServerError();
     return res
       .status(customError.code)
       .send(customError.resObj);
   }
-
-  // если ошибка не опознана, отправляем кастомную пятисотую
-  const customError = new ServerError();
-  return res
-    .status(customError.code)
-    .send(customError.resObj);
+  return next();
 };

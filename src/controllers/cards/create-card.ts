@@ -6,6 +6,7 @@ import { constants } from 'http2';
 import { celebrate, Joi } from 'celebrate';
 import Card, { ICard } from '../../models/card';
 import { AuthContext } from '../../types';
+import { BadRequest } from '../../errors';
 
 /**
  * Создаёт карточку
@@ -23,7 +24,10 @@ export const createCard = (
       res.send({ _id: card._id });
     })
     .catch((err) => {
-      next(err);
+      if ((<Error>err).name === 'ValidationError') {
+        return next(new BadRequest());
+      }
+      return next(err);
     });
 };
 

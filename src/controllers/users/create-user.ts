@@ -4,6 +4,7 @@ import bcrypt from 'bcryptjs';
 import { celebrate, Joi } from 'celebrate';
 import User, { IUser } from '../../models/user';
 import { joiPasswordValidator } from './constants';
+import { BadRequest, ConflictError } from '../../errors';
 
 /**
  * Создает нового пользователя
@@ -34,6 +35,11 @@ export const createUser = async (
     res.status(constants.HTTP_STATUS_CREATED);
     return res.send({ _id: user._id });
   } catch (err) {
+    if ((<Error>err).name === 'ValidationError') {
+      return next(new BadRequest());
+    } if ((<{code: number}>err).code === 11000) {
+      return next(new ConflictError('Пользователь с таким email уже существует'));
+    }
     return next(err);
   }
 };
