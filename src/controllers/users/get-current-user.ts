@@ -13,10 +13,8 @@ export const getCurrentUser = async (
   try {
     const user = await User.findById(
       res.locals.user._id,
-    )
-      .select(
-        ['-__v', '-password'],
-      );
+    );
+
     return res.send({ data: user });
   } catch (err) {
     return next(err);

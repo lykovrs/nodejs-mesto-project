@@ -26,9 +26,6 @@ export const updateCurrentUserAvatar = (
     { new: true, runValidators: true },
   )
     .orFail(new NotFoundError(notFoundUserMessage))
-    .select(
-      ['-__v', '-password'],
-    )
     .then((user) => {
       res.send({ data: user });
     })

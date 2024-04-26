@@ -28,7 +28,7 @@ export const dislikeCardById = (
   };
 
   return Card.findByIdAndUpdate(id, update, options)
-    .select(['-__v', '-updatedAt'])
+    .select(['-updatedAt'])
     .orFail(new NotFoundError(notFoundCardMessage))
     .then((card) => {
       res.send({ data: card });

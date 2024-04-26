@@ -40,6 +40,7 @@ const cardSchema = new Schema<ICard>({
   },
 }, {
   timestamps: true,
+  versionKey: false,
 });
 
 export default model<ICard>('card', cardSchema);

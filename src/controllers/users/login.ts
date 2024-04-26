@@ -4,11 +4,13 @@ import jwt from 'jsonwebtoken';
 import { celebrate, Joi } from 'celebrate';
 import User from '../../models/user';
 import {
-  BadRequest,
+  UnauthorizedError,
 } from '../../errors';
 import { joiPasswordValidator } from './constants';
 
 const { JWT_SECRET = 'super-strong-secret' } = process.env;
+
+const unAuthorizedError = new UnauthorizedError('Неправильные почта или пароль');
 
 /**
  * Аутентифицирует пользователя
@@ -26,13 +28,13 @@ export const login = async (
   try {
     const user = await User.findOne({ email }).select('+password');
     if (!user) {
-      return next(new BadRequest('Что-то не так с почтой или паролем'));
+      return next(unAuthorizedError);
     }
 
     const matched = await bcrypt.compare(password, user.password);
 
     if (!matched) {
-      return next(new BadRequest('Неправильные почта или пароль'));
+      return next(unAuthorizedError);
     }
 
     const token = jwt.sign(

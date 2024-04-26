@@ -5,6 +5,7 @@ import {
 import Card from '../../models/card';
 import { AuthContext } from '../../types';
 import {
+  ForbiddenError,
   NotFoundError,
 } from '../../errors';
 import { notFoundCardMessage } from '../constants';
@@ -20,12 +21,18 @@ export const deleteCardById = async (
   const { id } = req.params;
 
   try {
-    const card = await Card.findOneAndDelete({ _id: id, owner: res.locals.user._id })
-      .select(['-__v', '-updatedAt'])
+    const card = await Card.findById(id).orFail(new NotFoundError(notFoundCardMessage));
+
+    if (card?.owner.toString() !== res.locals.user._id) {
+      return next(new ForbiddenError('Пользователь не может удалить чужую карточку'));
+    }
+
+    await Card.findByIdAndDelete(id)
+      .select(['-updatedAt'])
       .orFail(new NotFoundError(notFoundCardMessage));
 
-    res.send({ _id: card._id });
+    return res.send({ _id: card._id });
   } catch (err) {
-    next(err);
+    return next(err);
   }
 };

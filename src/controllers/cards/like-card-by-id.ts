@@ -28,7 +28,6 @@ export const likeCardById = (
   };
 
   return Card.findByIdAndUpdate(id, update, options)
-    .select(['-__v', '-updatedAt'])
     .orFail(new NotFoundError(notFoundCardMessage))
     .then((card) => {
       res.send({ data: card });

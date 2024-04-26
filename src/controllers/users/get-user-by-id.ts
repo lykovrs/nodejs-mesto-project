@@ -17,9 +17,7 @@ export const getUserById = (
 ) => {
   const { id } = req.params;
 
-  return User.findById(id).select(
-    ['-__v', '-password'],
-  )
+  return User.findById(id)
     .orFail(new NotFoundError(notFoundUserMessage))
     .then((user) => {
       res.send({ data: user });

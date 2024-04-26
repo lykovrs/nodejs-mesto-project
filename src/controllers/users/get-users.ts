@@ -13,9 +13,7 @@ export const getUsers = async (
   next: NextFunction,
 ) => {
   try {
-    const users = await User.find({}).select(
-      ['-__v', '-password'],
-    );
+    const users = await User.find({});
 
     res.send({ data: users });
   } catch (e) {

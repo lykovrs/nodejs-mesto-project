@@ -9,7 +9,6 @@ import { AuthContext } from '../../types';
 import {
   notFoundUserMessage,
 } from '../constants';
-import { joiPasswordValidator } from './constants';
 
 /**
  * Обновляет данные текущего пользователя
@@ -20,21 +19,18 @@ export const updateCurrentUser = (
   next: NextFunction,
 ) => {
   const {
-    name, about, email, password,
+    name, about,
   } = req.body;
 
   return User.findByIdAndUpdate(
     res.locals?.user._id,
     {
       $set: {
-        name, about, email, password,
+        name, about,
       },
     },
     { new: true, runValidators: true },
   )
-    .select(
-      ['-__v', '-password'],
-    )
     .orFail(new NotFoundError(notFoundUserMessage))
     .then((user) => {
       res.send({ data: user });
@@ -51,7 +47,5 @@ export const updateCurrentUserInputRules = celebrate({
   body: Joi.object().keys({
     name: Joi.string().min(2).max(30),
     about: Joi.string().min(2).max(200),
-    email: Joi.string().email(),
-    password: joiPasswordValidator,
   }),
 });
