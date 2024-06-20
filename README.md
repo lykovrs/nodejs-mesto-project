@@ -1,4 +1,8 @@
 ## Бэкендом проекта Mesto
+IP-адрес сервера: 158.160.147.234
+URL фронтенда: https://place.nomorepartiesco.ru
+URL бэкенда: https://api.place.nomorepartiesco.ru
+
 ### Возможности приложения
 
 * Загружать фотографии с подписями.
